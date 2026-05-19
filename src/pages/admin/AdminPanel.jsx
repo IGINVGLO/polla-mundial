@@ -16,6 +16,12 @@ const FASE_LABEL = {
   final: 'Final',
 }
 
+const LINK_REGISTRO = 'https://polla-mundial-peach.vercel.app/register'
+const WHATSAPP_URL = `https://wa.me/?text=${encodeURIComponent(
+  `Te invito a la Polla del Mundial 2026 🏆 Regístrate aquí: ${LINK_REGISTRO}`
+)}`
+const MAX_PARTICIPANTES = 40
+
 function Spinner() {
   return (
     <div className="flex justify-center py-12">
@@ -34,7 +40,6 @@ function TabPartidos({ partidos, onUpdate }) {
 
   return (
     <div>
-      {/* Contador */}
       <div className="card mb-4 flex items-center gap-3">
         <span className="text-2xl font-bold text-blue-600">{pendientes}</span>
         <span className="text-slate-600 text-sm">
@@ -42,7 +47,6 @@ function TabPartidos({ partidos, onUpdate }) {
         </span>
       </div>
 
-      {/* Tabs de fase */}
       <div className="flex gap-1 overflow-x-auto pb-1 mb-5">
         {fasesPresentes.map((f) => (
           <button
@@ -59,18 +63,13 @@ function TabPartidos({ partidos, onUpdate }) {
         ))}
       </div>
 
-      {/* Lista de partidos */}
       {partidosFase.length === 0 ? (
         <p className="text-slate-400 text-sm text-center py-8">
           No hay partidos en esta fase todavía.
         </p>
       ) : (
         partidosFase.map((partido) => (
-          <PartidoAdminRow
-            key={partido.id}
-            partido={partido}
-            onUpdate={onUpdate}
-          />
+          <PartidoAdminRow key={partido.id} partido={partido} onUpdate={onUpdate} />
         ))
       )}
     </div>
@@ -99,9 +98,7 @@ function TabEspeciales({ equipos }) {
     const { error, updated } = await calcularPuntosEspeciales({
       campeonId: parseInt(form.campeon_id, 10),
       goleadorNombre: form.goleador_nombre,
-      goleadorEqId: form.goleador_equipo_id
-        ? parseInt(form.goleador_equipo_id, 10)
-        : null,
+      goleadorEqId: form.goleador_equipo_id ? parseInt(form.goleador_equipo_id, 10) : null,
       supabase,
     })
 
@@ -109,10 +106,7 @@ function TabEspeciales({ equipos }) {
     setFeedback(
       error
         ? { type: 'error', msg: `Error: ${error}` }
-        : {
-            type: 'ok',
-            msg: `Puntos especiales calculados para ${updated} jugadores.`,
-          }
+        : { type: 'ok', msg: `Puntos especiales calculados para ${updated} jugadores.` }
     )
   }
 
@@ -127,26 +121,16 @@ function TabEspeciales({ equipos }) {
         <label className="block text-sm font-medium text-slate-700 mb-1">
           🏆 Campeón real <span className="text-red-500">*</span>
         </label>
-        <select
-          name="campeon_id"
-          className="input"
-          value={form.campeon_id}
-          onChange={handleChange}
-          required
-        >
+        <select name="campeon_id" className="input" value={form.campeon_id} onChange={handleChange} required>
           <option value="">— Selecciona equipo —</option>
           {equipos.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.nombre} ({e.codigo})
-            </option>
+            <option key={e.id} value={e.id}>{e.nombre} ({e.codigo})</option>
           ))}
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          ⚽ Goleador real
-        </label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">⚽ Goleador real</label>
         <input
           name="goleador_nombre"
           className="input"
@@ -157,32 +141,19 @@ function TabEspeciales({ equipos }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Selección del goleador
-        </label>
-        <select
-          name="goleador_equipo_id"
-          className="input"
-          value={form.goleador_equipo_id}
-          onChange={handleChange}
-        >
+        <label className="block text-sm font-medium text-slate-700 mb-1">Selección del goleador</label>
+        <select name="goleador_equipo_id" className="input" value={form.goleador_equipo_id} onChange={handleChange}>
           <option value="">— Selecciona equipo —</option>
           {equipos.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.nombre} ({e.codigo})
-            </option>
+            <option key={e.id} value={e.id}>{e.nombre} ({e.codigo})</option>
           ))}
         </select>
       </div>
 
       {feedback && (
-        <p
-          className={`text-sm px-3 py-2 rounded-lg ${
-            feedback.type === 'ok'
-              ? 'bg-green-50 text-green-700'
-              : 'bg-red-50 text-red-600'
-          }`}
-        >
+        <p className={`text-sm px-3 py-2 rounded-lg ${
+          feedback.type === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+        }`}>
           {feedback.msg}
         </p>
       )}
@@ -196,6 +167,115 @@ function TabEspeciales({ equipos }) {
         ejecutar varias veces si hay correcciones.
       </p>
     </form>
+  )
+}
+
+/* ── Tab: Invitaciones ── */
+function TabInvitaciones() {
+  const [copiado, setCopiado] = useState(false)
+  const [usuarios, setUsuarios] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase
+      .from('usuarios')
+      .select('alias, nombre_completo, creado_en, es_admin')
+      .order('creado_en', { ascending: true })
+      .then(({ data }) => {
+        setUsuarios(data ?? [])
+        setLoading(false)
+      })
+  }, [])
+
+  const handleCopiar = async () => {
+    await navigator.clipboard.writeText(LINK_REGISTRO)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2000)
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Link de invitación */}
+      <div className="card space-y-3">
+        <h3 className="font-semibold text-slate-800">Invita participantes</h3>
+        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+          <span className="text-sm text-slate-600 truncate flex-1">{LINK_REGISTRO}</span>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={handleCopiar}
+            className={`btn-primary text-sm px-4 py-2 transition-all ${copiado ? 'bg-green-600 hover:bg-green-600' : ''}`}
+          >
+            {copiado ? '¡Copiado! ✓' : '📋 Copiar link'}
+          </button>
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary text-sm px-4 py-2"
+          >
+            💬 Compartir por WhatsApp
+          </a>
+        </div>
+      </div>
+
+      {/* Lista de usuarios */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-slate-800">Participantes registrados</h3>
+          <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+            usuarios.length >= MAX_PARTICIPANTES
+              ? 'bg-red-100 text-red-700'
+              : 'bg-blue-100 text-blue-700'
+          }`}>
+            {usuarios.length} / {MAX_PARTICIPANTES}
+          </span>
+        </div>
+
+        {loading ? (
+          <Spinner />
+        ) : usuarios.length === 0 ? (
+          <p className="text-slate-400 text-sm text-center py-6">Aún no hay participantes.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase tracking-wide">
+                  <th className="pb-2 pr-4">Alias</th>
+                  <th className="pb-2 pr-4 hidden sm:table-cell">Nombre</th>
+                  <th className="pb-2 pr-4 hidden md:table-cell">Registro</th>
+                  <th className="pb-2 text-center">Admin</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {usuarios.map((u) => (
+                  <tr key={u.alias} className="hover:bg-slate-50">
+                    <td className="py-2 pr-4 font-medium text-slate-800">{u.alias}</td>
+                    <td className="py-2 pr-4 text-slate-600 hidden sm:table-cell">
+                      {u.nombre_completo ?? '—'}
+                    </td>
+                    <td className="py-2 pr-4 text-slate-400 hidden md:table-cell">
+                      {new Date(u.creado_en).toLocaleDateString('es-CO', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                      })}
+                    </td>
+                    <td className="py-2 text-center">
+                      {u.es_admin ? (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold">
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -233,6 +313,7 @@ export default function AdminPanel() {
   const tabs = [
     { id: 'partidos', label: '⚽ Partidos' },
     { id: 'especiales', label: '⭐ Especiales' },
+    { id: 'invitaciones', label: '📨 Invitaciones' },
   ]
 
   return (
@@ -241,7 +322,6 @@ export default function AdminPanel() {
         Panel de administración
       </h1>
 
-      {/* Tab bar */}
       <div className="flex gap-2 mb-6 border-b border-slate-200">
         {tabs.map((t) => (
           <button
@@ -258,7 +338,9 @@ export default function AdminPanel() {
         ))}
       </div>
 
-      {loading ? (
+      {tab === 'invitaciones' ? (
+        <TabInvitaciones />
+      ) : loading ? (
         <Spinner />
       ) : tab === 'partidos' ? (
         <TabPartidos partidos={partidos} onUpdate={handleUpdate} />

@@ -208,7 +208,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `ProtectedRoute` | ✅ Completo |
 | Rutas (`App.jsx`) | ✅ Completo |
 | Login / Register | ✅ Funcionales |
-| Home | ✅ Placeholder |
+| Home | ✅ Completo — sección de puntuación agregada |
 | `usePartidos.js` | ✅ Completo |
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
@@ -219,7 +219,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Supabase: tablas + RLS + trigger | ✅ Completo |
 | `.env.local` con credenciales reales | ✅ Completo |
 | Predicciones especiales (campeón/goleador) | ✅ Completo — `src/pages/PrediccionesEspeciales.jsx` |
-| AdminPanel (registro de resultados) | ✅ Completo — tabs Partidos + Especiales |
+| AdminPanel (registro de resultados) | ✅ Completo — tabs Partidos + Especiales + Invitaciones |
 | Función `calcularYActualizarPuntos` | ✅ Completo — `src/lib/adminHelpers.js` |
 | Función `calcularPuntosEspeciales` | ✅ Completo — `src/lib/adminHelpers.js` |
 | Componente `PartidoAdminRow` | ✅ Completo — `src/components/admin/PartidoAdminRow.jsx` |
@@ -231,6 +231,18 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Deploy en Vercel | ✅ Completo — https://polla-mundial-peach.vercel.app |
 | Seed datos (equipos + partidos) | ✅ Completo — 48 equipos, 104 partidos en `supabase/migrations/20260518_005_seed_mundial2026.sql` |
 | GRANTs de acceso a tablas (migración 006) | ✅ Completo — `supabase/migrations/20260518_006_grants.sql` |
+
+## Notas Sesión 6
+
+- **Home.jsx** — Agregada sección "🏆 ¿Cómo se puntúa?" debajo de las tarjetas de bienvenida. Usa datos declarativos (`PUNTUACION` array) para facilitar cambios futuros. Badges de color diferenciados por tipo de acierto.
+- **AdminPanel tab Invitaciones** — Muestra el link de registro con botón copiar (feedback 2s) y botón WhatsApp. Lista todos los usuarios con alias, nombre, fecha de registro y badge admin. Contador `X / 40 participantes`.
+- **Política RLS requerida para lista de usuarios:** `usuarios_select_admin` permite al admin leer todos los registros de `public.usuarios`. Sin ella, la query devuelve solo el propio perfil. Ejecutar en Supabase antes de usar la tab Invitaciones:
+  ```sql
+  CREATE POLICY "usuarios_select_admin" ON public.usuarios
+    FOR SELECT TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.usuarios u2 WHERE u2.id = auth.uid() AND u2.es_admin = true));
+  ```
+- **Tab Invitaciones no depende del loading principal** — Hace su propio fetch al montarse, independiente del `Promise.all` de partidos/equipos. Así no bloquea ni enlentece las otras tabs.
 
 ## Notas Sesión 5
 
