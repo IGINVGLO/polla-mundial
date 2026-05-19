@@ -222,9 +222,19 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Componente `PartidoAdminRow` | ✅ Completo — `src/components/admin/PartidoAdminRow.jsx` |
 | Ruta `/predicciones-especiales` + enlace Navbar | ✅ Completo |
 | Ruta `/admin` + enlace Navbar (solo admin) | ✅ Completo |
-| RLS admin (migración 004) | ⚠️ Parcial — SQL listo en `supabase/migrations/20260518_004_rls_admin.sql`, pendiente de ejecutar |
+| RLS admin (migración 004) | ✅ Completo |
 | `vercel.json` (SPA rewrite) | ✅ Completo |
-| Deploy en Vercel | ⏳ Pendiente — ver guía al final |
+| Repo en GitHub | ✅ Completo — https://github.com/IGINVGLO/polla-mundial |
+| Deploy en Vercel | ✅ Completo — https://polla-mundial-peach.vercel.app |
+| Seed datos (equipos + partidos) | ✅ Completo — 48 equipos, 104 partidos en `supabase/migrations/20260518_005_seed_mundial2026.sql` |
+
+## Notas Sesión 4
+
+- **Seed definitivo ejecutado:** `20260518_005_seed_mundial2026.sql` contiene 48 equipos distribuidos en 12 grupos (A–L), 72 partidos de fase de grupos y 32 de eliminatorias (16 dieciseisavos + 8 octavos + 4 cuartos + 2 semis + 1 tercero + 1 final). Total: 104 partidos.
+- **Colombia en Grupo K:** junto a Portugal, Uzbekistán y Congo. Primer partido Colombia vs Uzbekistán el 14 jun 2026.
+- **Partidos eliminatorios con equipos NULL:** Los 32 partidos de dieciseisavos en adelante tienen `equipo_local_id = NULL` y `equipo_visitante_id = NULL`. Se actualizan desde AdminPanel cuando se conozcan los clasificados.
+- **Para ser admin:** Ejecutar en Supabase SQL Editor: `UPDATE public.usuarios SET es_admin = true WHERE alias = 'tu-alias';`
+- **Seed corregible sin borrar:** El seed usa `ON CONFLICT DO NOTHING` en equipos e `INSERT ... WHERE NOT EXISTS` implícito vía ids fijos, por lo que se puede volver a ejecutar sin duplicar datos.
 
 ## Notas Sesión 3
 
@@ -233,7 +243,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 - **`PartidoAdminRow` gestiona su propio estado:** Cada fila admin mantiene su estado de edición, loading y feedback internamente. El padre solo recibe `onUpdate(partido)` cuando hay un cambio confirmado en BD.
 - **Cierre de especiales hardcodeado:** `CIERRE_ESPECIALES = new Date('2026-06-11T19:00:00Z')` (14:00 hora Colombia). Si el torneo cambia de fecha, actualizar esta constante en `PrediccionesEspeciales.jsx`.
 - **`vercel.json` creado:** El rewrite `"/(.*)" → "/index.html"` es necesario para que React Router v7 funcione en Vercel sin errores 404 al refrescar o navegar directamente a una ruta.
-- **Deuda técnica:** La migración 004 aún no está ejecutada en Supabase. Sin ella, el flujo del admin falla silenciosamente al calcular puntos.
+- **Migración 004 ejecutada:** Políticas admin activas en Supabase. El flujo de cálculo de puntos está operativo.
 
 ## Notas Sesión 2
 
