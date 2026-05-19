@@ -46,6 +46,9 @@ Los archivos SQL están en `supabase/migrations/` y deben ejecutarse **en orden*
 | `20260518_001_schema_inicial.sql` | Tablas (usuarios, equipos, partidos, predicciones, predicciones_especiales) + vista ranking |
 | `20260518_002_rls.sql` | RLS + políticas de acceso por tabla |
 | `20260518_003_trigger.sql` | Trigger `on_auth_user_created` para crear perfil automáticamente al registrarse |
+| `20260518_004_rls_admin.sql` | Políticas RLS admin para leer/actualizar predicciones ajenas |
+| `20260518_005_seed_mundial2026.sql` | Seed: 48 equipos + 104 partidos |
+| `20260518_006_grants.sql` | GRANTs de acceso a tablas para roles `anon` y `authenticated` |
 
 ## Estructura de carpetas
 
@@ -227,20 +230,14 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Repo en GitHub | ✅ Completo — https://github.com/IGINVGLO/polla-mundial |
 | Deploy en Vercel | ✅ Completo — https://polla-mundial-peach.vercel.app |
 | Seed datos (equipos + partidos) | ✅ Completo — 48 equipos, 104 partidos en `supabase/migrations/20260518_005_seed_mundial2026.sql` |
+| GRANTs de acceso a tablas (migración 006) | ✅ Completo — `supabase/migrations/20260518_006_grants.sql` |
 
 ## Notas Sesión 5
 
-- **Bug `permission denied for table partidos` corregido:** La sintaxis `equipos!equipo_local_id` (con `!`) en el select de Supabase JS requiere que las FK estén registradas como constraints en `pg_constraint`. Si no lo están, el SDK lanza `permission denied` en lugar de un error descriptivo. Solución: usar `equipo_local:equipo_local_id(...)` — alias con nombre de columna sin `!`. No depende de constraints registradas. Corregido en `usePartidos.js` y `AdminPanel.jsx`.
-- **Sintaxis correcta para joins en Supabase JS (sin FK constraints):**
-  ```js
-  .select(`
-    *,
-    equipo_local:equipo_local_id(id, nombre, codigo, bandera_url),
-    equipo_visitante:equipo_visitante_id(id, nombre, codigo, bandera_url)
-  `)
-  ```
-  Nunca usar `tabla!columna_fk(...)` — depende de constraints registrados en pg_constraint.
-- **`usePredicciones.js` y `useRanking.js` no afectados:** Solo `usePartidos.js` y `AdminPanel.jsx` hacían joins con esa sintaxis.
+- **Causa raíz del 403/401 en todas las tablas: GRANTs faltantes.** En PostgreSQL, RLS y GRANTs son capas independientes. Sin `GRANT SELECT ON tabla TO anon, authenticated`, el rol ni puede intentar leer la tabla — RLS nunca llega a evaluarse. El SQL Editor funciona porque corre como `postgres` (superuser). La app corre como `anon`/`authenticated` y necesita GRANTs explícitos. Solucionado con `20260518_006_grants.sql`.
+- **Clave correcta para Supabase REST API:** Usar la clave JWT (`eyJ...`) desde Project Settings → Data API → `anon public`. La clave nueva en formato `sb_publishable_` es para auth pero el REST API (PostgREST) requiere el JWT. Ambas funcionan una vez aplicados los GRANTs.
+- **Migración 006 obligatoria en proyectos nuevos:** Sin ella, todas las queries desde el cliente dan 403/401. La migración 002 solo creó políticas RLS; los GRANTs de tabla-nivel estaban ausentes.
+- **`usePartidos.js` y `AdminPanel.jsx`:** La sintaxis de join `equipo_local:equipo_local_id(...)` (sin `!`) es compatible con o sin FK constraints registradas en pg_constraint. No revertir a `equipos!equipo_local_id`.
 
 ## Notas Sesión 4
 
