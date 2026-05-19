@@ -228,6 +228,20 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Deploy en Vercel | ✅ Completo — https://polla-mundial-peach.vercel.app |
 | Seed datos (equipos + partidos) | ✅ Completo — 48 equipos, 104 partidos en `supabase/migrations/20260518_005_seed_mundial2026.sql` |
 
+## Notas Sesión 5
+
+- **Bug `permission denied for table partidos` corregido:** La sintaxis `equipos!equipo_local_id` (con `!`) en el select de Supabase JS requiere que las FK estén registradas como constraints en `pg_constraint`. Si no lo están, el SDK lanza `permission denied` en lugar de un error descriptivo. Solución: usar `equipo_local:equipo_local_id(...)` — alias con nombre de columna sin `!`. No depende de constraints registradas. Corregido en `usePartidos.js` y `AdminPanel.jsx`.
+- **Sintaxis correcta para joins en Supabase JS (sin FK constraints):**
+  ```js
+  .select(`
+    *,
+    equipo_local:equipo_local_id(id, nombre, codigo, bandera_url),
+    equipo_visitante:equipo_visitante_id(id, nombre, codigo, bandera_url)
+  `)
+  ```
+  Nunca usar `tabla!columna_fk(...)` — depende de constraints registrados en pg_constraint.
+- **`usePredicciones.js` y `useRanking.js` no afectados:** Solo `usePartidos.js` y `AdminPanel.jsx` hacían joins con esa sintaxis.
+
 ## Notas Sesión 4
 
 - **Seed definitivo ejecutado:** `20260518_005_seed_mundial2026.sql` contiene 48 equipos distribuidos en 12 grupos (A–L), 72 partidos de fase de grupos y 32 de eliminatorias (16 dieciseisavos + 8 octavos + 4 cuartos + 2 semis + 1 tercero + 1 final). Total: 104 partidos.

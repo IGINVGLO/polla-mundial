@@ -212,8 +212,8 @@ export default function AdminPanel() {
         .from('partidos')
         .select(`
           *,
-          equipo_local:equipos!equipo_local_id(id, nombre, codigo),
-          equipo_visitante:equipos!equipo_visitante_id(id, nombre, codigo)
+          equipo_local:equipo_local_id(id, nombre, codigo),
+          equipo_visitante:equipo_visitante_id(id, nombre, codigo)
         `)
         .order('fecha_hora'),
       supabase.from('equipos').select('id, nombre, codigo').order('nombre'),

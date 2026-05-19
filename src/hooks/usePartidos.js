@@ -11,8 +11,8 @@ export function usePartidos(fase = null) {
       .from('partidos')
       .select(`
         *,
-        equipo_local:equipos!equipo_local_id(id, nombre, codigo, bandera_url),
-        equipo_visitante:equipos!equipo_visitante_id(id, nombre, codigo, bandera_url)
+        equipo_local:equipo_local_id(id, nombre, codigo, bandera_url),
+        equipo_visitante:equipo_visitante_id(id, nombre, codigo, bandera_url)
       `)
       .order('fecha_hora', { ascending: true })
 
