@@ -208,7 +208,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `ProtectedRoute` | ✅ Completo |
 | Rutas (`App.jsx`) | ✅ Completo |
 | Login / Register | ✅ Funcionales |
-| Home | ✅ Completo — sección de puntuación agregada |
+| Home | ✅ Completo — sección de puntuación + tarjetas de navegación clickeables |
 | `usePartidos.js` | ✅ Completo |
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
@@ -243,6 +243,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
     USING (EXISTS (SELECT 1 FROM public.usuarios u2 WHERE u2.id = auth.uid() AND u2.es_admin = true));
   ```
 - **Tab Invitaciones no depende del loading principal** — Hace su propio fetch al montarse, independiente del `Promise.all` de partidos/equipos. Así no bloquea ni enlentece las otras tabs.
+- **Tarjetas de Home no navegaban:** Las tres tarjetas (Mis predicciones, Ranking, Especiales) eran `div` sin enlace. Convertidas a `<Link>` de React Router con `hover:shadow-md`.
 
 ## Notas Sesión 5
 
