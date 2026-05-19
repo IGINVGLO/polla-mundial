@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 
 const PUNTUACION = [
@@ -46,21 +47,21 @@ export default function Home() {
       <p className="text-slate-500 mb-8">Bienvenido a la Polla del Mundial 2026</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-        <div className="card text-center">
+        <Link to="/predicciones" className="card text-center hover:shadow-md transition-shadow">
           <div className="text-4xl mb-2">⚽</div>
           <h2 className="font-semibold text-slate-900">Mis predicciones</h2>
           <p className="text-sm text-slate-500 mt-1">Llena tus picks antes de cada partido</p>
-        </div>
-        <div className="card text-center">
+        </Link>
+        <Link to="/ranking" className="card text-center hover:shadow-md transition-shadow">
           <div className="text-4xl mb-2">🏆</div>
           <h2 className="font-semibold text-slate-900">Ranking</h2>
           <p className="text-sm text-slate-500 mt-1">Mira cómo vas vs el grupo</p>
-        </div>
-        <div className="card text-center">
+        </Link>
+        <Link to="/predicciones-especiales" className="card text-center hover:shadow-md transition-shadow">
           <div className="text-4xl mb-2">⭐</div>
           <h2 className="font-semibold text-slate-900">Especiales</h2>
           <p className="text-sm text-slate-500 mt-1">Campeón y goleador del torneo</p>
-        </div>
+        </Link>
       </div>
 
       {/* Sección puntuación */}
