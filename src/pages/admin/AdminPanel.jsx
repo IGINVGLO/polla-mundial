@@ -31,7 +31,7 @@ function Spinner() {
 }
 
 /* ── Tab: Partidos ── */
-function TabPartidos({ partidos, onUpdate }) {
+function TabPartidos({ partidos, equipos, onUpdate }) {
   const fasesPresentes = FASES_ORDEN.filter((f) => partidos.some((p) => p.fase === f))
   const [faseActiva, setFaseActiva] = useState(fasesPresentes[0] ?? 'grupos')
 
@@ -69,7 +69,7 @@ function TabPartidos({ partidos, onUpdate }) {
         </p>
       ) : (
         partidosFase.map((partido) => (
-          <PartidoAdminRow key={partido.id} partido={partido} onUpdate={onUpdate} />
+          <PartidoAdminRow key={partido.id} partido={partido} equipos={equipos} onUpdate={onUpdate} />
         ))
       )}
     </div>
@@ -343,7 +343,7 @@ export default function AdminPanel() {
       ) : loading ? (
         <Spinner />
       ) : tab === 'partidos' ? (
-        <TabPartidos partidos={partidos} onUpdate={handleUpdate} />
+        <TabPartidos partidos={partidos} equipos={equipos} onUpdate={handleUpdate} />
       ) : (
         <TabEspeciales equipos={equipos} />
       )}

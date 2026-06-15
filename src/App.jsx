@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
+import ResetPassword from '@/pages/ResetPassword'
 import Home from '@/pages/Home'
 import Predicciones from '@/pages/Predicciones'
 import PrediccionesEspeciales from '@/pages/PrediccionesEspeciales'
@@ -27,6 +28,7 @@ export default function App() {
         {/* Rutas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Rutas protegidas — usan el Layout con Navbar */}
         <Route

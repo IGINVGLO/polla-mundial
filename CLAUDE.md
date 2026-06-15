@@ -207,19 +207,19 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Layout + Navbar | ✅ Completo |
 | `ProtectedRoute` | ✅ Completo |
 | Rutas (`App.jsx`) | ✅ Completo |
-| Login / Register | ✅ Funcionales |
+| Login / Register | ✅ Completo — recuperación de contraseña agregada; `ResetPassword.jsx` creado |
 | Home | ✅ Completo — sección de puntuación + tarjetas de navegación clickeables |
 | `usePartidos.js` | ✅ Completo |
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
-| `TarjetaPartido.jsx` | ✅ Completo |
+| `TarjetaPartido.jsx` | ✅ Completo — botón "Ver picks de todos" + `ModalPicks.jsx` cuando partido cerrado |
 | Página Predicciones | ✅ Completo |
 | Página Ranking | ✅ Completo |
 | Página MiPerfil | ✅ Completo |
 | Supabase: tablas + RLS + trigger | ✅ Completo |
 | `.env.local` con credenciales reales | ✅ Completo |
 | Predicciones especiales (campeón/goleador) | ✅ Completo — `src/pages/PrediccionesEspeciales.jsx` |
-| AdminPanel (registro de resultados) | ✅ Completo — tabs Partidos + Especiales + Invitaciones |
+| AdminPanel (registro de resultados) | ✅ Completo — tabs Partidos + Especiales + Invitaciones; asignación de equipos en partidos eliminatorios |
 | Función `calcularYActualizarPuntos` | ✅ Completo — `src/lib/adminHelpers.js` |
 | Función `calcularPuntosEspeciales` | ✅ Completo — `src/lib/adminHelpers.js` |
 | Componente `PartidoAdminRow` | ✅ Completo — `src/components/admin/PartidoAdminRow.jsx` |
@@ -231,6 +231,24 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Deploy en Vercel | ✅ Completo — https://polla-mundial-peach.vercel.app |
 | Seed datos (equipos + partidos) | ✅ Completo — 48 equipos, 104 partidos en `supabase/migrations/20260518_005_seed_mundial2026.sql` |
 | GRANTs de acceso a tablas (migración 006) | ✅ Completo — `supabase/migrations/20260518_006_grants.sql` |
+| `BannerAviso.jsx` | ✅ Completo — banner amarillo en Layout (visible hasta 18 jun 2026) |
+| `ModalPicks.jsx` | ✅ Completo — modal con tabla de picks de todos por partido |
+| `ResetPassword.jsx` + ruta `/reset-password` | ✅ Completo — página pública para actualizar contraseña |
+
+## Notas Sesión 8
+
+- **CIERRE_ESPECIALES extendido:** Cambiado de `2026-06-11T19:00:00Z` a `2026-06-19T05:00:00Z` (18 jun a medianoche hora Colombia UTC-5). Actualizar si vuelve a cambiar tanto en `PrediccionesEspeciales.jsx` como en `BannerAviso.jsx`.
+- **BannerAviso.jsx:** Componente en `src/components/ui/` que se autodesactiva cuando `new Date() >= CIERRE`. No necesita props. Se monta en `Layout.jsx` entre `<Navbar />` y `<main>`, fuera del contenedor max-width para que ocupe todo el ancho. Usar clases `bg-yellow-50 border-b border-yellow-300 text-yellow-800`.
+- **Recuperación de contraseña:** `Login.jsx` llama a `supabase.auth.resetPasswordForEmail(email, { redirectTo })`. El link del email lleva a `/reset-password` (ruta pública, fuera de `ProtectedRoute`). `ResetPassword.jsx` llama a `supabase.auth.updateUser({ password })` — Supabase maneja el token de sesión automáticamente desde la URL del email. Al éxito navega a `/login` con `state: { resetOk: true }` para mostrar el mensaje de confirmación.
+- **ModalPicks.jsx:** El componente recibe `picks` (array o null), `partido`, `userId`, `loading`, `onClose`. La query en `TarjetaPartido.jsx` incluye `usuario_id` en el SELECT para poder resaltar la fila propia. El primer fetch se cachea en estado local (`picks !== null` evita refetch al reabrir). RLS cubre la privacidad: la query solo corre cuando `cerrado === true`.
+- **Orden en ModalPicks:** Si `resultado_registrado === true`, ordena por `puntos_obtenidos DESC`. Si no, ordena por `alias ASC`. Esto da sentido al listado en ambos estados del partido.
+
+## Notas Sesión 7
+
+- **Asignación de equipos en partidos eliminatorios:** `PartidoAdminRow` ahora detecta si `equipo_local_id === null || equipo_visitante_id === null` y muestra un formulario alternativo con dos `<select>` y un botón "Asignar equipos". Al guardar hace `UPDATE partidos SET equipo_local_id, equipo_visitante_id WHERE id = ?` y llama `onUpdate` con el objeto actualizado (incluyendo los objetos `equipo_local` y `equipo_visitante` construidos desde el array `equipos`).
+- **`equipos` se pasa como prop por la cadena:** `AdminPanel` → `TabPartidos` → `PartidoAdminRow`. `TabPartidos` recibió el prop `equipos` nuevo. `PartidoAdminRow` tiene `equipos = []` con default vacío.
+- **El toggle de predicciones cerradas y el formulario de resultado quedan ocultos** mientras el partido no tenga equipos asignados (`equiposNull === true`). Solo se muestran tras asignar.
+- **Validación básica de asignación:** muestra error si los dos selects tienen el mismo equipo o si alguno está vacío.
 
 ## Notas Sesión 6
 
@@ -265,7 +283,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 - **Migración 004 obligatoria antes de usar AdminPanel:** Sin `20260518_004_rls_admin.sql`, el admin no puede leer predicciones ajenas ni actualizarlas. `calcularYActualizarPuntos` devolvería 0 filas silenciosamente. Ejecutar en Supabase SQL Editor antes de registrar resultados.
 - **`calcularPuntosEspeciales` normaliza tildes:** Usa `normalize('NFD')` + `replace(/[̀-ͯ]/g, '')` para comparar goleador_nombre de forma case-insensitive e ignorando tildes (ej: "Álvarez" === "Alvarez").
 - **`PartidoAdminRow` gestiona su propio estado:** Cada fila admin mantiene su estado de edición, loading y feedback internamente. El padre solo recibe `onUpdate(partido)` cuando hay un cambio confirmado en BD.
-- **Cierre de especiales hardcodeado:** `CIERRE_ESPECIALES = new Date('2026-06-11T19:00:00Z')` (14:00 hora Colombia). Si el torneo cambia de fecha, actualizar esta constante en `PrediccionesEspeciales.jsx`.
+- **Cierre de especiales hardcodeado:** `CIERRE_ESPECIALES = new Date('2026-06-19T05:00:00Z')` (medianoche del 18 jun hora Colombia, actualizado en sesión 8). Si cambia de fecha, actualizar la constante en `PrediccionesEspeciales.jsx` **y** en `BannerAviso.jsx`.
 - **`vercel.json` creado:** El rewrite `"/(.*)" → "/index.html"` es necesario para que React Router v7 funcione en Vercel sin errores 404 al refrescar o navegar directamente a una ruta.
 - **Migración 004 ejecutada:** Políticas admin activas en Supabase. El flujo de cálculo de puntos está operativo.
 

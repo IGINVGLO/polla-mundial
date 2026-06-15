@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
 
-// 11 jun 2026 · 14:00 hora Colombia (UTC-5) = 19:00 UTC
-const CIERRE_ESPECIALES = new Date('2026-06-11T19:00:00Z')
+// 18 jun 2026 · medianoche hora Colombia (UTC-5) = 05:00 UTC del 19
+const CIERRE_ESPECIALES = new Date('2026-06-19T05:00:00Z')
 
 function Spinner() {
   return (
@@ -93,7 +93,7 @@ export default function PrediccionesEspeciales() {
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Predicciones especiales ⭐</h1>
       <p className="text-sm text-slate-500 mb-6">
-        Cierre: <strong>11 junio 2026 · 14:00</strong> hora Colombia
+        Cierre: <strong>18 junio 2026 · medianoche</strong> hora Colombia
       </p>
 
       {/* Puntaje obtenido (si ya hay resultado) */}

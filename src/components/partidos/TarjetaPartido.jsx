@@ -1,10 +1,30 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { supabase } from '@/lib/supabaseClient'
+import { useAuthStore } from '@/store/authStore'
+import ModalPicks from '@/components/ui/ModalPicks'
 
 export default function TarjetaPartido({ partido, prediccion, upsertPrediccion }) {
+  const { user } = useAuthStore()
   const cerrado =
     partido.predicciones_cerradas || new Date() >= new Date(partido.fecha_hora)
+
+  const [modalAbierto, setModalAbierto] = useState(false)
+  const [picks, setPicks] = useState(null)
+  const [loadingPicks, setLoadingPicks] = useState(false)
+
+  const abrirModal = async () => {
+    setModalAbierto(true)
+    if (picks !== null) return
+    setLoadingPicks(true)
+    const { data } = await supabase
+      .from('predicciones')
+      .select('goles_local, goles_visitante, puntos_obtenidos, usuario_id, usuarios(alias)')
+      .eq('partido_id', partido.id)
+    setPicks(data ?? [])
+    setLoadingPicks(false)
+  }
 
   const [local, setLocal] = useState(
     prediccion != null ? String(prediccion.goles_local) : ''
@@ -67,6 +87,12 @@ export default function TarjetaPartido({ partido, prediccion, upsertPrediccion }
             <span className="text-sm text-slate-400 italic">Sin predicción</span>
           )}
           <p className="text-xs text-slate-400 mt-1">Partido cerrado</p>
+          <button
+            onClick={abrirModal}
+            className="mt-2 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            Ver picks de todos 👁
+          </button>
         </div>
       ) : (
         <div className="flex items-center justify-center gap-2">
@@ -105,6 +131,16 @@ export default function TarjetaPartido({ partido, prediccion, upsertPrediccion }
       )}
       {feedback === 'error' && (
         <p className="text-center text-xs text-red-500 mt-2">Error al guardar, intenta de nuevo</p>
+      )}
+
+      {modalAbierto && (
+        <ModalPicks
+          picks={picks}
+          partido={partido}
+          userId={user?.id}
+          loading={loadingPicks}
+          onClose={() => setModalAbierto(false)}
+        />
       )}
     </div>
   )
