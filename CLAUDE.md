@@ -208,14 +208,14 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `ProtectedRoute` | ✅ Completo |
 | Rutas (`App.jsx`) | ✅ Completo |
 | Login / Register | ✅ Completo — recuperación de contraseña agregada; `ResetPassword.jsx` creado |
-| Home | ✅ Completo — sección de puntuación + tarjetas de navegación clickeables |
+| Home | ✅ Completo — sección de puntuación + tarjetas de navegación clickeables + resumen personal (partidos por predecir, predicciones guardadas, posición en ranking) |
 | `usePartidos.js` | ✅ Completo |
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
-| `TarjetaPartido.jsx` | ✅ Completo — botón "Ver picks de todos" + `ModalPicks.jsx` cuando partido cerrado |
+| `TarjetaPartido.jsx` | ✅ Completo — botón "Ver picks de todos" + `ModalPicks.jsx` cuando partido cerrado + badges de estado (sin predecir / guardada / sin predicción) |
 | Página Predicciones | ✅ Completo |
 | Página Ranking | ✅ Completo |
-| Página MiPerfil | ✅ Completo |
+| Página MiPerfil | ✅ Completo — estadísticas (posición, puntos, exactos, parciales) + predicción especial guardada |
 | Supabase: tablas + RLS + trigger | ✅ Completo |
 | `.env.local` con credenciales reales | ✅ Completo |
 | Predicciones especiales (campeón/goleador) | ✅ Completo — `src/pages/PrediccionesEspeciales.jsx` |
@@ -234,6 +234,20 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `BannerAviso.jsx` | ✅ Completo — banner amarillo en Layout (visible hasta 18 jun 2026) |
 | `ModalPicks.jsx` | ✅ Completo — modal con tabla de picks de todos por partido |
 | `ResetPassword.jsx` + ruta `/reset-password` | ✅ Completo — página pública para actualizar contraseña |
+
+## Notas Sesión 9
+
+- **Lógica de "partido abierto":** `!partido.predicciones_cerradas && new Date(partido.fecha_hora) > new Date()` — es el inverso exacto del `cerrado` que ya usaba `TarjetaPartido`. Se reutiliza en `Home.jsx` para contar pendientes; no crear una tercera definición si se necesita en otro lado.
+- **`TarjetaPartido.jsx` — badges de estado:** Tres estados posibles según `cerrado` y si `prediccion != null`:
+  - Abierto sin predicción → borde `border-l-4 border-orange-400` + badge "⚠️ Sin predecir" (`bg-orange-100 text-orange-700`).
+  - Abierto con predicción → badge "✓ Predicción guardada" (`bg-green-100 text-green-700`), sin borde especial.
+  - Cerrado sin predicción → borde `border-l-4 border-slate-300` + badge "Sin predicción" (`bg-slate-100 text-slate-500`).
+  - Cerrado con predicción → sin badge nuevo (ya se muestra el marcador + puntos obtenidos).
+  El badge se renderiza como una fila `flex justify-end` al inicio de la tarjeta (no `absolute`) para evitar que se superponga con los nombres largos de equipos en pantallas angostas.
+- **`Home.jsx` — resumen personal:** Usa `usePartidos()` + `usePredicciones()` + `useRanking()` sin fetches adicionales. "Predicciones guardadas" muestra `predicciones.length` de `partidos.length` (104, incluye los de eliminatorias con equipos por definir). La posición en el ranking es `ranking.findIndex(r => r.id === user.id) + 1`; si es `0` (usuario no encontrado) se muestra "—". Botón "Ir a predecir →" solo aparece si hay partidos abiertos sin predicción; si no, mensaje "¡Estás al día! ✓".
+- **`MiPerfil.jsx` — refactor de estadísticas:** Se eliminó el fetch directo a `ranking` (`.eq('id', user.id).single()`) y el conteo de `predicciones`; ahora la sección de estadísticas (debajo del formulario) usa `useRanking()` para posición, puntos totales, exactos y parciales — mismo patrón que `Home.jsx`. El conteo "predicciones guardadas" ya no se muestra aquí (queda solo en `Home.jsx` para no duplicar el mismo número en dos páginas).
+- **Predicción especial en `MiPerfil.jsx` — corrección de join:** La query indicada (`select('campeon_id, goleador_nombre, equipos(nombre)')`) es ambigua porque `predicciones_especiales` tiene **dos** FKs a `equipos` (`campeon_id` y `goleador_equipo_id`) — mismo problema de PostgREST documentado en Sesión 5 para `usePartidos`. Se usó `campeon:campeon_id(nombre)` para desambiguar, y `.maybeSingle()` en vez de `.single()` para no lanzar error cuando el usuario aún no guardó su predicción especial (`especial === null` → "No registrada aún").
+- **Deuda pendiente:** Ninguna de las 3 tareas requirió migraciones SQL nuevas ni cambios de RLS. Quedan sin tocar 5 errores de lint preexistentes en `master` (no relacionados con esta sesión): `usePartidos.js`, `usePredicciones.js`, `MiPerfil.jsx` (patrón `setState` síncrono en `useEffect`), `adminHelpers.js` (`goleadorEqId` sin usar) y `vite.config.js` (`__dirname`).
 
 ## Notas Sesión 8
 

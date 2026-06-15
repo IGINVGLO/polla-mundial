@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
+import { usePartidos } from '@/hooks/usePartidos'
+import { usePredicciones } from '@/hooks/usePredicciones'
+import { useRanking } from '@/hooks/useRanking'
 
 const PUNTUACION = [
   {
@@ -36,8 +39,37 @@ const PUNTUACION = [
   },
 ]
 
+function TarjetaEstadistica({ icono, label, valor, colorClase, loading }) {
+  return (
+    <div className="card text-center py-4">
+      <div className="text-3xl mb-1">{icono}</div>
+      <div className={`text-xl font-bold ${colorClase}`}>
+        {loading ? (
+          <span className="inline-block w-12 h-6 bg-slate-200 rounded animate-pulse" />
+        ) : (
+          valor
+        )}
+      </div>
+      <div className="text-xs text-slate-500 mt-1">{label}</div>
+    </div>
+  )
+}
+
 export default function Home() {
-  const { perfil } = useAuthStore()
+  const { perfil, user } = useAuthStore()
+  const { partidos, loading: partidosLoading } = usePartidos()
+  const { predicciones, loading: predLoading } = usePredicciones()
+  const { ranking, loading: rankingLoading } = useRanking()
+
+  const loadingResumen = partidosLoading || predLoading || rankingLoading
+
+  const predMap = new Set(predicciones.map((p) => p.partido_id))
+  const ahora = new Date()
+  const partidosAbiertos = partidos.filter(
+    (p) => !p.predicciones_cerradas && new Date(p.fecha_hora) > ahora
+  )
+  const pendientes = partidosAbiertos.filter((p) => !predMap.has(p.id)).length
+  const posicion = ranking.findIndex((r) => r.id === user?.id) + 1
 
   return (
     <div>
@@ -45,6 +77,43 @@ export default function Home() {
         ¡Hola, {perfil?.alias ?? 'jugador'}! 👋
       </h1>
       <p className="text-slate-500 mb-8">Bienvenido a la Polla del Mundial 2026</p>
+
+      {/* Resumen personal */}
+      <div className="mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
+          <TarjetaEstadistica
+            icono="📋"
+            label="Partidos por predecir"
+            valor={pendientes}
+            colorClase={pendientes > 0 ? 'text-orange-500' : 'text-green-600'}
+            loading={loadingResumen}
+          />
+          <TarjetaEstadistica
+            icono="✅"
+            label="Predicciones guardadas"
+            valor={`${predicciones.length} de ${partidos.length}`}
+            colorClase="text-blue-600"
+            loading={loadingResumen}
+          />
+          <TarjetaEstadistica
+            icono="🥇"
+            label="Tu posición en el ranking"
+            valor={posicion > 0 ? `#${posicion} de ${ranking.length}` : '—'}
+            colorClase="text-amber-500"
+            loading={loadingResumen}
+          />
+        </div>
+
+        {!loadingResumen && (
+          pendientes > 0 ? (
+            <Link to="/predicciones" className="btn-primary inline-block text-sm">
+              Ir a predecir →
+            </Link>
+          ) : (
+            <p className="text-sm font-semibold text-green-600">¡Estás al día! ✓</p>
+          )
+        )}
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <Link to="/predicciones" className="card text-center hover:shadow-md transition-shadow">

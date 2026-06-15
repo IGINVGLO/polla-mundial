@@ -9,6 +9,19 @@ export default function TarjetaPartido({ partido, prediccion, upsertPrediccion }
   const { user } = useAuthStore()
   const cerrado =
     partido.predicciones_cerradas || new Date() >= new Date(partido.fecha_hora)
+  const tienePrediccion = prediccion != null
+
+  let estadoBorde = ''
+  let estadoBadge = null
+  if (!cerrado) {
+    estadoBadge = tienePrediccion
+      ? { texto: '✓ Predicción guardada', clase: 'bg-green-100 text-green-700' }
+      : { texto: '⚠️ Sin predecir', clase: 'bg-orange-100 text-orange-700' }
+    if (!tienePrediccion) estadoBorde = 'border-l-4 border-orange-400'
+  } else if (!tienePrediccion) {
+    estadoBorde = 'border-l-4 border-slate-300'
+    estadoBadge = { texto: 'Sin predicción', clase: 'bg-slate-100 text-slate-500' }
+  }
 
   const [modalAbierto, setModalAbierto] = useState(false)
   const [picks, setPicks] = useState(null)
@@ -50,7 +63,14 @@ export default function TarjetaPartido({ partido, prediccion, upsertPrediccion }
   }
 
   return (
-    <div className="card mb-3">
+    <div className={`card mb-3 ${estadoBorde}`}>
+      {estadoBadge && (
+        <div className="flex justify-end mb-2 -mt-1">
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${estadoBadge.clase}`}>
+            {estadoBadge.texto}
+          </span>
+        </div>
+      )}
       {/* Equipos */}
       <div className="flex items-center gap-3 mb-2">
         <span className="flex-1 text-right font-semibold text-slate-800 text-sm">
