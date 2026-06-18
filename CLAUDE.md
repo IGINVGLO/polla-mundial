@@ -208,13 +208,13 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `ProtectedRoute` | ✅ Completo |
 | Rutas (`App.jsx`) | ✅ Completo |
 | Login / Register | ✅ Completo — recuperación de contraseña agregada; `ResetPassword.jsx` creado |
-| Home | ✅ Completo — sección de puntuación + tarjetas de navegación clickeables + resumen personal (partidos por predecir, predicciones guardadas, posición en ranking) |
+| Home | ✅ Completo — resumen personal + partidos del día + sección puntuación + tarjetas de navegación clickeables |
 | `usePartidos.js` | ✅ Completo |
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
 | `TarjetaPartido.jsx` | ✅ Completo — botón "Ver picks de todos" + `ModalPicks.jsx` cuando partido cerrado + badges de estado (sin predecir / guardada / sin predicción) |
 | Página Predicciones | ✅ Completo |
-| Página Ranking | ✅ Completo |
+| Página Ranking | ✅ Completo — tabla + botón compartir WhatsApp |
 | Página MiPerfil | ✅ Completo — estadísticas (posición, puntos, exactos, parciales) + predicción especial guardada |
 | Supabase: tablas + RLS + trigger | ✅ Completo |
 | `.env.local` con credenciales reales | ✅ Completo |
@@ -234,6 +234,14 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `BannerAviso.jsx` | ✅ Completo — banner amarillo en Layout (visible hasta 18 jun 2026) |
 | `ModalPicks.jsx` | ✅ Completo — modal con tabla de picks de todos por partido |
 | `ResetPassword.jsx` + ruta `/reset-password` | ✅ Completo — página pública para actualizar contraseña |
+
+## Notas Sesión 10
+
+- **`Home.jsx` — sección "Partidos de hoy":** Usa `partidos` y `predicciones` ya cargados (sin fetches adicionales). `predMapFull` es un `Map<partido_id, prediccion>` para lookup O(1); coexiste con `predMapSet` (el `Set` que ya existía para contar pendientes). Los badges de estado siguen la jerarquía: `resultado_registrado === true` → verde con marcador; `fechaHora > ahora` → azul con hora; en caso contrario → naranja "En curso".
+- **Hora en formato Colombia:** `format(fechaHora, 'h:mm a', { locale: es })` — igual que en `TarjetaPartido` y `PartidoAdminRow`. El locale `es` puede producir "p. m." con espacio; es comportamiento de date-fns v4, no un bug.
+- **Skeleton de "Partidos de hoy":** Muestra 2 filas de placeholder mientras `loadingResumen` sea true. Reutiliza la misma bandera de loading que el resumen personal (misma fuente de datos).
+- **`Ranking.jsx` — botón compartir WhatsApp:** Añadido dentro del `<div className="flex items-center gap-2">` de la celda Jugador. Usa `ml-auto` para empujar el botón al extremo derecho del flex container. `idx + 1` calcula la posición sin estado adicional. `window.open` con `_blank` — no requiere librería externa.
+- **Deuda pendiente:** Los 5 errores de lint preexistentes de sesión anterior siguen sin tocar (`usePartidos.js`, `usePredicciones.js`, `MiPerfil.jsx`, `adminHelpers.js`, `vite.config.js`). La sección "Partidos de hoy" filtra por `toDateString()` que usa la zona horaria del navegador del usuario (correcto para usuarios en Colombia).
 
 ## Notas Sesión 9
 
