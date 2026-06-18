@@ -91,6 +91,19 @@ export default function Ranking() {
                         {esMio && (
                           <span className="text-xs text-blue-400 font-medium">(tú)</span>
                         )}
+                        {esMio && (
+                          <button
+                            onClick={() => {
+                              const mensaje = encodeURIComponent(
+                                `Voy #${idx + 1} en la Polla del Mundial 2026 con ${row.puntos_totales} puntos 🏆\n¿Te animas? Entra aquí: https://polla-mundial-peach.vercel.app`
+                              )
+                              window.open(`https://wa.me/?text=${mensaje}`, '_blank')
+                            }}
+                            className="ml-auto bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded"
+                          >
+                            Compartir 📲
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center font-bold text-slate-900">

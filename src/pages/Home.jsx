@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { useAuthStore } from '@/store/authStore'
 import { usePartidos } from '@/hooks/usePartidos'
 import { usePredicciones } from '@/hooks/usePredicciones'
@@ -63,13 +65,19 @@ export default function Home() {
 
   const loadingResumen = partidosLoading || predLoading || rankingLoading
 
-  const predMap = new Set(predicciones.map((p) => p.partido_id))
+  const predMapSet = new Set(predicciones.map((p) => p.partido_id))
+  const predMapFull = new Map(predicciones.map((p) => [p.partido_id, p]))
   const ahora = new Date()
   const partidosAbiertos = partidos.filter(
     (p) => !p.predicciones_cerradas && new Date(p.fecha_hora) > ahora
   )
-  const pendientes = partidosAbiertos.filter((p) => !predMap.has(p.id)).length
+  const pendientes = partidosAbiertos.filter((p) => !predMapSet.has(p.id)).length
   const posicion = ranking.findIndex((r) => r.id === user?.id) + 1
+
+  const partidosHoy = partidos.filter((p) => {
+    const fechaPartido = new Date(p.fecha_hora)
+    return fechaPartido.toDateString() === ahora.toDateString()
+  })
 
   return (
     <div>
@@ -131,6 +139,73 @@ export default function Home() {
           <h2 className="font-semibold text-slate-900">Especiales</h2>
           <p className="text-sm text-slate-500 mt-1">Campeón y goleador del torneo</p>
         </Link>
+      </div>
+
+      {/* Partidos de hoy */}
+      <div className="mb-10">
+        <h2 className="text-lg font-bold text-slate-900 mb-3">Partidos de hoy</h2>
+        {loadingResumen ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="card py-3 px-4">
+                <div className="h-4 bg-slate-200 rounded animate-pulse w-3/4 mb-2" />
+                <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : partidosHoy.length === 0 ? (
+          <p className="text-slate-400 text-sm">No hay partidos hoy.</p>
+        ) : (
+          <div className="space-y-3">
+            {partidosHoy.map((partido) => {
+              const fechaHora = new Date(partido.fecha_hora)
+              const esFuturo = fechaHora > ahora
+              const localNombre = partido.equipo_local?.nombre ?? 'Por definir'
+              const visitanteNombre = partido.equipo_visitante?.nombre ?? 'Por definir'
+              const prediccion = predMapFull.get(partido.id)
+
+              return (
+                <div key={partido.id} className="card py-3 px-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="font-semibold text-slate-900 text-sm leading-tight">
+                      {localNombre}{' '}
+                      <span className="text-slate-400 font-normal">vs</span>{' '}
+                      {visitanteNombre}
+                    </div>
+                    {partido.resultado_registrado ? (
+                      <span className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                        {partido.goles_local} — {partido.goles_visitante}
+                      </span>
+                    ) : esFuturo ? (
+                      <span className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                        Hoy a las {format(fechaHora, 'h:mm a', { locale: es })}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                        En curso
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {partido.estadio} · {partido.ciudad}
+                  </p>
+                  {prediccion ? (
+                    <p className="text-xs text-slate-400 mt-1.5">
+                      Tu pick: {prediccion.goles_local}-{prediccion.goles_visitante}
+                    </p>
+                  ) : esFuturo ? (
+                    <Link
+                      to="/predicciones"
+                      className="inline-block mt-1.5 text-xs font-semibold text-blue-600 hover:underline"
+                    >
+                      Predecir →
+                    </Link>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Sección puntuación */}
