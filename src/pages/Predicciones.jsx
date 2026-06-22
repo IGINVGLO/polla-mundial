@@ -7,7 +7,7 @@ const FASES_ORDEN = [
   'dieciseisavos',
   'octavos',
   'cuartos',
-  'semis',
+  'semifinal',
   'tercero',
   'final',
 ]
@@ -17,7 +17,7 @@ const FASES_LABEL = {
   dieciseisavos: 'Dieciseisavos de Final',
   octavos: 'Octavos de Final',
   cuartos: 'Cuartos de Final',
-  semis: 'Semifinales',
+  semifinal: 'Semifinales',
   tercero: 'Tercer Puesto',
   final: 'Final',
 }

@@ -242,6 +242,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 - **Skeleton de "Partidos de hoy":** Muestra 2 filas de placeholder mientras `loadingResumen` sea true. Reutiliza la misma bandera de loading que el resumen personal (misma fuente de datos).
 - **`Ranking.jsx` — botón compartir WhatsApp:** Añadido dentro del `<div className="flex items-center gap-2">` de la celda Jugador. Usa `ml-auto` para empujar el botón al extremo derecho del flex container. `idx + 1` calcula la posición sin estado adicional. `window.open` con `_blank` — no requiere librería externa.
 - **Deuda pendiente:** Los 5 errores de lint preexistentes de sesión anterior siguen sin tocar (`usePartidos.js`, `usePredicciones.js`, `MiPerfil.jsx`, `adminHelpers.js`, `vite.config.js`). La sección "Partidos de hoy" filtra por `toDateString()` que usa la zona horaria del navegador del usuario (correcto para usuarios en Colombia).
+- **Bug corregido: Semifinales no aparecían en `Predicciones.jsx`.** `FASES_ORDEN` y `FASES_LABEL` usaban la clave `'semis'`, pero en Supabase la columna `partidos.fase` guarda el valor exacto `'semifinal'` (ids 189 y 190). Como `fasesPresentes` filtra con `partidos.some((p) => p.fase === f)`, la sección completa se omitía silenciosamente (sin error visible). Corregido a `'semifinal'` en ambas constantes. Si se agregan nuevas fases en el futuro, verificar que la clave en el código coincida carácter por carácter con el valor real en la columna `fase` de Supabase, no solo con el nombre "lógico" de la fase.
 
 ## Notas Sesión 9
 
