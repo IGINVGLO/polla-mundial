@@ -107,12 +107,14 @@ export default function TarjetaPartido({ partido, prediccion, upsertPrediccion }
             <span className="text-sm text-slate-400 italic">Sin predicción</span>
           )}
           <p className="text-xs text-slate-400 mt-1">Partido cerrado</p>
-          <button
-            onClick={abrirModal}
-            className="mt-2 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            Ver picks de todos 👁
-          </button>
+          {partido.predicciones_cerradas && (
+            <button
+              onClick={abrirModal}
+              className="mt-2 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Ver picks de todos 👁
+            </button>
+          )}
         </div>
       ) : (
         <div className="flex items-center justify-center gap-2">

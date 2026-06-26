@@ -213,7 +213,8 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
 | `TarjetaPartido.jsx` | ✅ Completo — botón "Ver picks de todos" + `ModalPicks.jsx` cuando partido cerrado + badges de estado (sin predecir / guardada / sin predicción) |
-| Página Predicciones | ✅ Completo |
+| Página Predicciones | ✅ Completo — tabs por fase + filtro por grupo + auto-detección de fase activa |
+| Página Grupos | ✅ Completo — tabla de posiciones por grupo A–L, clasificados resaltados — `src/pages/Grupos.jsx` |
 | Página Ranking | ✅ Completo — tabla + botón compartir WhatsApp |
 | Página MiPerfil | ✅ Completo — estadísticas (posición, puntos, exactos, parciales) + predicción especial guardada |
 | Supabase: tablas + RLS + trigger | ✅ Completo |
@@ -224,6 +225,7 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | Función `calcularPuntosEspeciales` | ✅ Completo — `src/lib/adminHelpers.js` |
 | Componente `PartidoAdminRow` | ✅ Completo — `src/components/admin/PartidoAdminRow.jsx` |
 | Ruta `/predicciones-especiales` + enlace Navbar | ✅ Completo |
+| Ruta `/grupos` + enlace Navbar | ✅ Completo — entre "Mis Picks" y "Especiales" |
 | Ruta `/admin` + enlace Navbar (solo admin) | ✅ Completo |
 | RLS admin (migración 004) | ✅ Completo |
 | `vercel.json` (SPA rewrite) | ✅ Completo |
@@ -243,6 +245,15 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 - **`Ranking.jsx` — botón compartir WhatsApp:** Añadido dentro del `<div className="flex items-center gap-2">` de la celda Jugador. Usa `ml-auto` para empujar el botón al extremo derecho del flex container. `idx + 1` calcula la posición sin estado adicional. `window.open` con `_blank` — no requiere librería externa.
 - **Deuda pendiente:** Los 5 errores de lint preexistentes de sesión anterior siguen sin tocar (`usePartidos.js`, `usePredicciones.js`, `MiPerfil.jsx`, `adminHelpers.js`, `vite.config.js`). La sección "Partidos de hoy" filtra por `toDateString()` que usa la zona horaria del navegador del usuario (correcto para usuarios en Colombia).
 - **Bug corregido: Semifinales no aparecían en `Predicciones.jsx`.** `FASES_ORDEN` y `FASES_LABEL` usaban la clave `'semis'`, pero en Supabase la columna `partidos.fase` guarda el valor exacto `'semifinal'` (ids 189 y 190). Como `fasesPresentes` filtra con `partidos.some((p) => p.fase === f)`, la sección completa se omitía silenciosamente (sin error visible). Corregido a `'semifinal'` en ambas constantes. Si se agregan nuevas fases en el futuro, verificar que la clave en el código coincida carácter por carácter con el valor real en la columna `fase` de Supabase, no solo con el nombre "lógico" de la fase.
+
+## Notas Sesión 11
+
+- **Bug `AdminPanel.jsx` — Semifinales:** El mismo bug de `Predicciones.jsx` existía en `AdminPanel.jsx`: `FASES_ORDEN` tenía `'semis'` y `FASE_LABEL` tenía `semis: 'Semis'`. La tab no aparecía porque `fasesPresentes.filter((f) => partidos.some((p) => p.fase === f))` nunca encontraba coincidencia con el valor real `'semifinal'` de la DB. Corregido a `'semifinal': 'Semifinales'` en ambos objetos.
+- **Bug `TarjetaPartido.jsx` — Modal de picks:** El botón "Ver picks de todos 👁" aparecía para todos cuando `cerrado` era `true` (condición compuesta: `predicciones_cerradas || time-based`). Pero la RLS de Supabase solo permite leer picks ajenos cuando `predicciones_cerradas = true` en la DB. Para usuarios no-admin, clickar el botón en un partido cerrado solo por tiempo devolvía datos vacíos o solo el pick propio. El admin sí veía todo (bypass RLS vía migración 004). Fix: el botón ahora solo se renderiza cuando `partido.predicciones_cerradas === true`, alineando la UI con cuando la RLS realmente permite acceso para cualquier usuario.
+- **`Predicciones.jsx` — Rediseño con tabs:** `faseActiva` inicia en `null`; `faseReal = faseActiva ?? defaultFase` permite que la detección automática funcione hasta que el usuario seleccione manualmente. `detectarFaseDefault` busca el partido más próximo sin `resultado_registrado`, lo que apunta naturalmente a la fase actualmente relevante. Cambiar de tab resetea `grupoActivo` a `'Todos'` para evitar que el filtro de grupo persista en fases donde no aplica.
+- **`Grupos.jsx` — Cálculo de posiciones:** La función `calcularPosiciones` inicializa stats para todos los equipos del grupo (incluso sin resultados) y acumula desde partidos con `resultado_registrado = true`. El filtro de partidos por grupo usa el campo `grupo` de la tabla `partidos` (no inferencia por equipos). La leyenda de clasificación (verde / amarillo) se muestra siempre, independientemente de si hay resultados.
+- **`Grupos.jsx` — Equipos del grupo:** La query a `equipos` incluye el campo `grupo TEXT` del esquema, poblado por el seed `20260518_005_seed_mundial2026.sql`. Si hay equipos sin `grupo` asignado, quedan fuera del filtro `e.grupo === grupoActivo` sin generar errores.
+- **Deuda pendiente:** Los 5 errores de lint preexistentes siguen sin tocar (`usePartidos.js`, `usePredicciones.js`, `MiPerfil.jsx`, `adminHelpers.js`, `vite.config.js`).
 
 ## Notas Sesión 9
 

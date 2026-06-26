@@ -32,6 +32,7 @@ export default function Navbar() {
           <nav className="flex items-center gap-5">
             <NavLink to="/" end className={navLinkClass}>Inicio</NavLink>
             <NavLink to="/predicciones" className={navLinkClass}>Mis Picks</NavLink>
+            <NavLink to="/grupos" className={navLinkClass}>Grupos</NavLink>
             <NavLink to="/predicciones-especiales" className={navLinkClass}>Especiales</NavLink>
             <NavLink to="/ranking" className={navLinkClass}>Ranking</NavLink>
             {isAdmin() && (

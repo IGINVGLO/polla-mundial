@@ -4,14 +4,14 @@ import { calcularPuntosEspeciales } from '@/lib/adminHelpers'
 import PartidoAdminRow from '@/components/admin/PartidoAdminRow'
 
 const FASES_ORDEN = [
-  'grupos', 'dieciseisavos', 'octavos', 'cuartos', 'semis', 'tercero', 'final',
+  'grupos', 'dieciseisavos', 'octavos', 'cuartos', 'semifinal', 'tercero', 'final',
 ]
 const FASE_LABEL = {
   grupos: 'Grupos',
   dieciseisavos: 'Dieciseisavos',
   octavos: 'Octavos',
   cuartos: 'Cuartos',
-  semis: 'Semis',
+  semifinal: 'Semifinales',
   tercero: '3er Puesto',
   final: 'Final',
 }

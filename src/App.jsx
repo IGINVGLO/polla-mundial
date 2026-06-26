@@ -13,6 +13,7 @@ import Predicciones from '@/pages/Predicciones'
 import PrediccionesEspeciales from '@/pages/PrediccionesEspeciales'
 import Ranking from '@/pages/Ranking'
 import MiPerfil from '@/pages/MiPerfil'
+import Grupos from '@/pages/Grupos'
 import AdminPanel from '@/pages/admin/AdminPanel'
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
         >
           <Route index element={<Home />} />
           <Route path="predicciones" element={<Predicciones />} />
+          <Route path="grupos" element={<Grupos />} />
           <Route path="predicciones-especiales" element={<PrediccionesEspeciales />} />
           <Route path="ranking" element={<Ranking />} />
           <Route path="perfil" element={<MiPerfil />} />
