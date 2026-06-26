@@ -213,8 +213,9 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `usePredicciones.js` | ✅ Completo (renombrado a `upsertPrediccion`, añadido `error` y `fetchPredicciones`) |
 | `useRanking.js` | ✅ Completo (añadido `error`) |
 | `TarjetaPartido.jsx` | ✅ Completo — botón "Ver picks de todos" + `ModalPicks.jsx` cuando partido cerrado + badges de estado (sin predecir / guardada / sin predicción) |
-| Página Predicciones | ✅ Completo — tabs por fase + filtro por grupo + auto-detección de fase activa |
-| Página Grupos | ✅ Completo — tabla de posiciones por grupo A–L, clasificados resaltados — `src/pages/Grupos.jsx` |
+| Página Predicciones | ✅ Completo — tabs + filtro grupo + tabla posiciones + tabla mejores terceros con criterios FIFA |
+| Página Grupos | ✅ Completo — tabla de posiciones A–L con criterios FIFA (usa `calcularTablaGrupo` del lib) |
+| `calcularPosiciones.js` | ✅ Completo — `src/lib/calcularPosiciones.js`; exporta `calcularTablaGrupo` y `calcularMejoresTerceros` |
 | Página Ranking | ✅ Completo — tabla + botón compartir WhatsApp |
 | Página MiPerfil | ✅ Completo — estadísticas (posición, puntos, exactos, parciales) + predicción especial guardada |
 | Supabase: tablas + RLS + trigger | ✅ Completo |
@@ -254,6 +255,17 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 - **`Grupos.jsx` — Cálculo de posiciones:** La función `calcularPosiciones` inicializa stats para todos los equipos del grupo (incluso sin resultados) y acumula desde partidos con `resultado_registrado = true`. El filtro de partidos por grupo usa el campo `grupo` de la tabla `partidos` (no inferencia por equipos). La leyenda de clasificación (verde / amarillo) se muestra siempre, independientemente de si hay resultados.
 - **`Grupos.jsx` — Equipos del grupo:** La query a `equipos` incluye el campo `grupo TEXT` del esquema, poblado por el seed `20260518_005_seed_mundial2026.sql`. Si hay equipos sin `grupo` asignado, quedan fuera del filtro `e.grupo === grupoActivo` sin generar errores.
 - **Deuda pendiente:** Los 5 errores de lint preexistentes siguen sin tocar (`usePartidos.js`, `usePredicciones.js`, `MiPerfil.jsx`, `adminHelpers.js`, `vite.config.js`).
+
+## Notas Sesión 12
+
+- **`src/lib/calcularPosiciones.js` — nuevo módulo central:** Exporta `calcularTablaGrupo(partidos, equipos)` y `calcularMejoresTerceros(partidos, equipos)`. Ambas funciones reciben `partidos` YA filtrados a `resultado_registrado = true` (el filtrado es responsabilidad del llamador). Esto evita que el lib dependa de campos que no siempre están en el SELECT de la query.
+- **Criterios FIFA 2026 implementados en `calcularTablaGrupo`:** (1) Puntos H2H, (2) DIF goles H2H, (3) GF H2H, (4) DIF goles general, (5) GF general, (6) Fair play — DEUDA TÉCNICA: requiere columnas `tarjetas_amarillas`/`tarjetas_rojas` en `partidos`; actualmente no existen en el esquema, se omite y cae al siguiente criterio, (7) Ranking FIFA — DEUDA TÉCNICA: sin datos en el esquema actual, se omite y cae a orden alfabético como último desempate.
+- **H2H correcto para 3-4 equipos empatados:** `computeH2H` acumula stats de cada equipo contra TODOS los demás empatados (no pairwise). Se agrupa por puntos totales y se aplica `sortTied` dentro de cada grupo, lo que evita la no-transitividad de comparadores H2H pairwise en escenarios circulares (A gana a B, B gana a C, C gana a A).
+- **`Predicciones.jsx` — equipos derivados sin fetch adicional:** `equiposDePartidos` se construye con `useMemo` a partir de los partidos de fase=grupos ya cargados por `usePartidos()`. Cada partido con equipos válidos aporta `equipo_local` y `equipo_visitante` al mapa; el campo `grupo` del partido se agrega al objeto equipo. Evita una llamada adicional a `equipos` desde Supabase.
+- **`TablaGrupo` en Predicciones.jsx:** Aparece encima de los partidos cuando se selecciona un grupo específico. Los colores (verde/amarillo) solo se aplican cuando `hayResultados = psConResultado.length > 0`; si no hay resultados, la tabla muestra los 4 equipos en 0 sin colores.
+- **`MejoresTerceros` en Predicciones.jsx:** Aparece al final de la vista "Todos". Solo incluye grupos con `ps.length > 0` (al menos 1 resultado). Las columnas "Estado" y los badges "Clasifica"/"Eliminado" solo aparecen cuando los 12 grupos tienen resultados (`todos12 = terceros.length === 12`). El coloring rojo (eliminado) requiere exactamente 12 terceros para evitar mostrar "Eliminado" prematuramente.
+- **`Grupos.jsx` — migrado al lib:** Eliminada la función local `calcularPosiciones`; ahora usa `calcularTablaGrupo` importada. Añadido `hayResultados = partidosGrupo.length > 0` para aplicar colores solo cuando hay datos.
+- **Deuda pendiente:** Fair play y Ranking FIFA omitidos (caen a alfabético). No bloquea la app pero puede dar ordenamiento incorrecto en desempates extremos. Requeriría agregar `tarjetas_amarillas INT DEFAULT 0` y `tarjetas_rojas INT DEFAULT 0` a la tabla `partidos` vía nueva migración.
 
 ## Notas Sesión 9
 
