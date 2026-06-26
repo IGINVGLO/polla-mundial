@@ -1,9 +1,16 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
+import { usePartidos } from '@/hooks/usePartidos'
 
 export default function Navbar() {
   const { user, perfil, logout, isAdmin } = useAuthStore()
   const navigate = useNavigate()
+  const { partidos } = usePartidos()
+
+  const hoy = new Date()
+  const hayPartidosHoy = partidos.some(
+    (p) => new Date(p.fecha_hora).toDateString() === hoy.toDateString()
+  )
 
   const handleLogout = async () => {
     await logout()
@@ -30,7 +37,14 @@ export default function Navbar() {
         {/* Nav links — solo cuando hay sesión */}
         {user && (
           <nav className="flex items-center gap-5">
-            <NavLink to="/" end className={navLinkClass}>Inicio</NavLink>
+            <NavLink to="/" end className={navLinkClass}>
+              <span className="inline-flex items-start gap-0.5">
+                <span>Inicio</span>
+                {hayPartidosHoy && (
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse mt-0.5 shrink-0" />
+                )}
+              </span>
+            </NavLink>
             <NavLink to="/predicciones" className={navLinkClass}>Mis Picks</NavLink>
             <NavLink to="/grupos" className={navLinkClass}>Grupos</NavLink>
             <NavLink to="/predicciones-especiales" className={navLinkClass}>Especiales</NavLink>

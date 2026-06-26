@@ -86,61 +86,6 @@ export default function Home() {
       </h1>
       <p className="text-slate-500 mb-8">Bienvenido a la Polla del Mundial 2026</p>
 
-      {/* Resumen personal */}
-      <div className="mb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
-          <TarjetaEstadistica
-            icono="📋"
-            label="Partidos por predecir"
-            valor={pendientes}
-            colorClase={pendientes > 0 ? 'text-orange-500' : 'text-green-600'}
-            loading={loadingResumen}
-          />
-          <TarjetaEstadistica
-            icono="✅"
-            label="Predicciones guardadas"
-            valor={`${predicciones.length} de ${partidos.length}`}
-            colorClase="text-blue-600"
-            loading={loadingResumen}
-          />
-          <TarjetaEstadistica
-            icono="🥇"
-            label="Tu posición en el ranking"
-            valor={posicion > 0 ? `#${posicion} de ${ranking.length}` : '—'}
-            colorClase="text-amber-500"
-            loading={loadingResumen}
-          />
-        </div>
-
-        {!loadingResumen && (
-          pendientes > 0 ? (
-            <Link to="/predicciones" className="btn-primary inline-block text-sm">
-              Ir a predecir →
-            </Link>
-          ) : (
-            <p className="text-sm font-semibold text-green-600">¡Estás al día! ✓</p>
-          )
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-        <Link to="/predicciones" className="card text-center hover:shadow-md transition-shadow">
-          <div className="text-4xl mb-2">⚽</div>
-          <h2 className="font-semibold text-slate-900">Mis predicciones</h2>
-          <p className="text-sm text-slate-500 mt-1">Llena tus picks antes de cada partido</p>
-        </Link>
-        <Link to="/ranking" className="card text-center hover:shadow-md transition-shadow">
-          <div className="text-4xl mb-2">🏆</div>
-          <h2 className="font-semibold text-slate-900">Ranking</h2>
-          <p className="text-sm text-slate-500 mt-1">Mira cómo vas vs el grupo</p>
-        </Link>
-        <Link to="/predicciones-especiales" className="card text-center hover:shadow-md transition-shadow">
-          <div className="text-4xl mb-2">⭐</div>
-          <h2 className="font-semibold text-slate-900">Especiales</h2>
-          <p className="text-sm text-slate-500 mt-1">Campeón y goleador del torneo</p>
-        </Link>
-      </div>
-
       {/* Partidos de hoy */}
       <div className="mb-10">
         <h2 className="text-lg font-bold text-slate-900 mb-3">Partidos de hoy</h2>
@@ -206,6 +151,61 @@ export default function Home() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Resumen personal */}
+      <div className="mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
+          <TarjetaEstadistica
+            icono="📋"
+            label="Partidos por predecir"
+            valor={pendientes}
+            colorClase={pendientes > 0 ? 'text-orange-500' : 'text-green-600'}
+            loading={loadingResumen}
+          />
+          <TarjetaEstadistica
+            icono="✅"
+            label="Predicciones guardadas"
+            valor={`${predicciones.length} de ${partidos.length}`}
+            colorClase="text-blue-600"
+            loading={loadingResumen}
+          />
+          <TarjetaEstadistica
+            icono="🥇"
+            label="Tu posición en el ranking"
+            valor={posicion > 0 ? `#${posicion} de ${ranking.length}` : '—'}
+            colorClase="text-amber-500"
+            loading={loadingResumen}
+          />
+        </div>
+
+        {!loadingResumen && (
+          pendientes > 0 ? (
+            <Link to="/predicciones" className="btn-primary inline-block text-sm">
+              Ir a predecir →
+            </Link>
+          ) : (
+            <p className="text-sm font-semibold text-green-600">¡Estás al día! ✓</p>
+          )
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        <Link to="/predicciones" className="card text-center hover:shadow-md transition-shadow">
+          <div className="text-4xl mb-2">⚽</div>
+          <h2 className="font-semibold text-slate-900">Mis predicciones</h2>
+          <p className="text-sm text-slate-500 mt-1">Llena tus picks antes de cada partido</p>
+        </Link>
+        <Link to="/ranking" className="card text-center hover:shadow-md transition-shadow">
+          <div className="text-4xl mb-2">🏆</div>
+          <h2 className="font-semibold text-slate-900">Ranking</h2>
+          <p className="text-sm text-slate-500 mt-1">Mira cómo vas vs el grupo</p>
+        </Link>
+        <Link to="/predicciones-especiales" className="card text-center hover:shadow-md transition-shadow">
+          <div className="text-4xl mb-2">⭐</div>
+          <h2 className="font-semibold text-slate-900">Especiales</h2>
+          <p className="text-sm text-slate-500 mt-1">Campeón y goleador del torneo</p>
+        </Link>
       </div>
 
       {/* Sección puntuación */}

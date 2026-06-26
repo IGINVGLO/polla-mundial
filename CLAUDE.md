@@ -237,6 +237,9 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 | `BannerAviso.jsx` | ✅ Completo — banner amarillo en Layout (visible hasta 18 jun 2026) |
 | `ModalPicks.jsx` | ✅ Completo — modal con tabla de picks de todos por partido |
 | `ResetPassword.jsx` + ruta `/reset-password` | ✅ Completo — página pública para actualizar contraseña |
+| `Home.jsx` | ✅ Completo — partidos del día primero + resumen personal + tarjetas nav + puntuación |
+| `Navbar.jsx` | ✅ Completo — badge verde animado cuando hay partidos hoy |
+| `BannerNovedades.jsx` | ✅ Completo — banner azul con novedades v3, se cierra con localStorage |
 
 ## Notas Sesión 10
 
@@ -332,6 +335,13 @@ Los hooks (`usePartidos`, `usePredicciones`, `useRanking`) devuelven siempre `{ 
 - **Cierre de especiales hardcodeado:** `CIERRE_ESPECIALES = new Date('2026-06-19T05:00:00Z')` (medianoche del 18 jun hora Colombia, actualizado en sesión 8). Si cambia de fecha, actualizar la constante en `PrediccionesEspeciales.jsx` **y** en `BannerAviso.jsx`.
 - **`vercel.json` creado:** El rewrite `"/(.*)" → "/index.html"` es necesario para que React Router v7 funcione en Vercel sin errores 404 al refrescar o navegar directamente a una ruta.
 - **Migración 004 ejecutada:** Políticas admin activas en Supabase. El flujo de cálculo de puntos está operativo.
+
+## Notas Sesión 13
+
+- **`Home.jsx` — nuevo orden de secciones:** Partidos de hoy → Resumen personal (TarjetaEstadistica + botón) → Tarjetas de navegación (Mis picks / Ranking / Especiales) → ¿Cómo se puntúa? El saludo (h1 + p) sigue en primer lugar siempre. Solo se reordenaron bloques JSX; sin cambios de lógica ni de datos.
+- **`Navbar.jsx` — badge verde en "Inicio":** Se importa `usePartidos()` directamente en el Navbar. `hayPartidosHoy` usa `toDateString()` de la fecha local del navegador (igual que `Home.jsx` y `TarjetaPartido.jsx` — zona horaria del usuario). El badge es un `<span>` con `w-2 h-2 rounded-full bg-green-500 animate-pulse` posicionado inline como superíndice con `items-start gap-0.5`. **Posible doble-fetch:** `usePartidos()` ya está montado en `Home.jsx`, `Predicciones.jsx` y otras páginas que usan el mismo hook. Si el hook no cachea entre instancias (actualmente no lo hace — cada instancia hace su propio fetch), el Navbar genera un fetch adicional en cada página. Es aceptable para ~40 usuarios pero se puede optimizar con Zustand o Context si aparece latencia notable.
+- **`BannerNovedades.jsx`:** Estado inicial derivado de `localStorage` en el inicializador del `useState` (lazy init) — no produce re-render al montar. Key `polla_novedades_v3_visto`; incrementar a `_v4_`, `_v5_`... para forzar que vuelva a aparecer en futuras sesiones. Montado en `Layout.jsx` entre `<BannerAviso />` y `<main>`, fuera del contenedor max-width para ocupar todo el ancho, igual que `BannerAviso`.
+- **Deuda pendiente:** Posible doble-fetch de `usePartidos` en Navbar (ver punto anterior). Los 5 errores de lint preexistentes siguen sin tocar.
 
 ## Notas Sesión 2
 
